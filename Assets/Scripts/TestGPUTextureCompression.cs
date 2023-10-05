@@ -12,6 +12,7 @@ public class TestGPUTextureCompression : MonoBehaviour
     private Texture m_TargetTexture;
     private bool m_SRGB = true;
     private int m_SelectFormat = 2;
+    private int m_EncodeCountPerFrame = 1;
 
     private void Awake()
     {
@@ -45,6 +46,10 @@ public class TestGPUTextureCompression : MonoBehaviour
             new []{ "Original", "ASTC 4x4", "ASTC 5x5", "ASTC 6x6" }, 2, 
             new GUIStyle(GUI.skin.button) { fontSize = 50 });
         
+        GUILayout.Space(50);
+        m_EncodeCountPerFrame = (int)GUILayout.HorizontalSlider(m_EncodeCountPerFrame, 1, 1000);
+        GUILayout.Label($"{m_EncodeCountPerFrame}", new GUIStyle(GUI.skin.label) { fontSize = 50 });
+        
         if (m_SelectFormat != newFormat)
         {
             m_SelectFormat = newFormat;
@@ -58,7 +63,8 @@ public class TestGPUTextureCompression : MonoBehaviour
             return;
 
         CommandBuffer cmd = CommandBufferPool.Get("GPU Texture Compress");
-        m_TextureCompressor.CompressTexture(cmd, m_SourceTexture, m_TargetTexture, 0, 0, m_SRGB);
+        for (int i = 0; i < m_EncodeCountPerFrame; i++)
+            m_TextureCompressor.CompressTexture(cmd, m_SourceTexture, m_TargetTexture, 0, 0, m_SRGB);
         Graphics.ExecuteCommandBuffer(cmd);
         CommandBufferPool.Release(cmd);
     }
